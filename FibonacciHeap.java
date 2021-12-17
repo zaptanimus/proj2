@@ -19,6 +19,15 @@ public class FibonacciHeap
 		
 	}
 	
+	public HeapNode getFirst()
+	{
+		return this.first;
+	}
+	
+	public int getMarked()
+	{
+		return this.marks;
+	}
 	
    /**
     * public boolean isEmpty()
@@ -100,6 +109,16 @@ public class FibonacciHeap
         		this.first = child;
         	}
     	}
+    	HeapNode toDelete = this.min;
+    	if(toDelete.getKey() == first.getKey()) {
+    		this.first = this.first.getNext();
+    	}
+    	toDelete.getNext().setPrev(toDelete.getPrev());
+    	toDelete.getPrev().setNext(toDelete.getNext());
+    	toDelete.setChild(null);
+    	toDelete.setParent(null);
+    	toDelete.setNext(null);
+    	toDelete.setPrev(null);
     	this.consolidate();
     	this.size--; //decrease size after deleting
      	return;
@@ -121,11 +140,11 @@ public class FibonacciHeap
     	while(x != null) {
     		HeapNode y = x;
     		x = x.getNext();
-    		y.setNext(null); //controversial not sure if to disconnect the current node before putting it in B
-    		y.setPrev(null); //controversial not sure if to disconnect the current node before putting it in B
+    		y.setNext(y); //controversial not sure if to disconnect the current node before putting it in B
+    		y.setPrev(y); //controversial not sure if to disconnect the current node before putting it in B
     		while (B[y.getRank()] != null) {
     			y = link(y, B[y.getRank()]);
-    			//row from pres B[y.getRank()-1]>=null???
+    			B[y.getRank()-1] = null;
     		}
     		B[y.getRank()] = y;
     	}
@@ -137,10 +156,17 @@ public class FibonacciHeap
     	links++;
     	if(y.getKey()> tenant.getKey()) {
     		HeapNode child = tenant.getChild(); //connect y to tenant's children
-    		y.setNext(child);
-    		y.setPrev(child.getPrev());
-    		child.getPrev().setNext(y);
-    		child.setPrev(y);
+    		if(child != null) {
+    			if(tenant.getRank() == 1) { //check if working
+    				child.setNext(child);
+    				child.setPrev(child);
+    			}
+    			y.setNext(child);
+    			y.setPrev(child.getPrev());
+    			child.getPrev().setNext(y);
+    			child.setPrev(y);
+    		}
+    		y.setParent(tenant);
     		
     		tenant.setChild(y); //connect y to tenant
     		tenant.setRank(tenant.getRank()+1);
@@ -148,10 +174,17 @@ public class FibonacciHeap
     	}
     	else {
     		HeapNode child = y.getChild(); //connect tenant to y's children
-    		tenant.setNext(child);
-    		tenant.setPrev(child.getPrev());
-    		child.getPrev().setNext(tenant);
-    		child.setPrev(tenant);
+    		if(child != null) {
+    			if(y.getRank() == 1) { //check if working
+    				child.setNext(child);
+    				child.setPrev(child);
+    			}
+    			tenant.setNext(child);
+        		tenant.setPrev(child.getPrev());
+        		child.getPrev().setNext(tenant);
+        		child.setPrev(tenant);
+    		}
+    		tenant.setParent(y);
     		
     		y.setChild(tenant); //connect tenant to y
     		y.setRank(y.getRank()+1);
@@ -397,8 +430,58 @@ public class FibonacciHeap
     */
     public static int[] kMin(FibonacciHeap H, int k)
     {    
-        int[] arr = new int[100];
-        return arr; // should be replaced by student code
+        if(k == 0 || H.isEmpty()) {
+        	int[] arr = new int[0];
+        	return arr;
+    	}
+        int[] arr = new int[k];
+        if(k > H.size) {
+    		k = H.size;
+    	}
+        if(k == 1) {
+        	arr[0] = H.findMin().getKey();
+        	return arr;
+        }
+        FibonacciHeap minChildHeap = new FibonacciHeap(); //temp Heap to find the next min
+        arr[0] = H.findMin().getKey();
+        HeapNode traveler = H.findMin().getChild();
+        HeapNode hTraveler = H.findMin().getChild(); //pointer in the original heap to help keep track
+    	int j = 0;
+    	while(j < H.getFirst().getRank()) {  
+    		//traveler.setPosition(traveler.getNext());
+    		minChildHeap.insert(traveler.getKey());
+    		minChildHeap.getFirst().setPosition(traveler.getNext());
+    		traveler = traveler.getNext();
+    		j++;
+    	}
+        for(int i = 1; i < k; i++) {
+        	//HeapNode nextMin = minChildHeap.findMin();
+        	int nextMinKey = minChildHeap.findMin().getKey();
+        	while(hTraveler.getKey() != nextMinKey) {
+        		hTraveler = hTraveler.getNext();
+        	}
+        	arr[i] = nextMinKey;
+        	minChildHeap.deleteMin();
+        	traveler = minChildHeap.first;
+        	if(hTraveler.getChild() != null) {
+        		FibonacciHeap tempMinHeap = new FibonacciHeap();
+        		hTraveler = hTraveler.getChild();
+        		//int anotherStopKey = hTraveler.getKey();
+        		int l = 0;
+        		while(l < hTraveler.getParent().getRank()) { //hTraveler.getNext().getKey() != anotherStopKey) {
+        			//hTraveler.setPosition(hTraveler.getNext());
+        			tempMinHeap.insert(hTraveler.getKey());
+        			tempMinHeap.getFirst().setPosition(hTraveler.getNext());
+        			hTraveler = hTraveler.getNext();
+        			l++;
+        		}
+        		minChildHeap.meld(tempMinHeap);
+        	}
+        	hTraveler = minChildHeap.findMin().getPosition().getPrev();
+        }
+        
+        
+        return arr;
     }
     
    /**
@@ -418,6 +501,7 @@ public class FibonacciHeap
     	public HeapNode next;
     	public HeapNode prev;
     	public HeapNode parent;
+    	public HeapNode position;
     	
 
     	public HeapNode(int key) {
@@ -475,6 +559,14 @@ public class FibonacciHeap
     	
     	public void setParent(HeapNode parent) {
     		this.parent = parent;
+    	}
+    	
+    	public HeapNode getPosition() {
+    		return this.position;
+    	}
+    	
+    	public void setPosition(HeapNode position) {
+    		this.position = position;
     	}
     }
 }
