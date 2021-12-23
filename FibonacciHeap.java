@@ -91,13 +91,29 @@ public class FibonacciHeap
     		return;
     	}
     	if(this.min.getChild() != null) { //disconnect min's children and add them to the main branch
+    		this.trees += this.min.getRank(); // add min's children to size
     		HeapNode child = this.min.getChild();
     		HeapNode traveler = child;
-    		while(traveler.getNext().getKey() != child.getKey()) {
-    			traveler.setParent(null);
+    		
+    		int i = 0;
+        	while(i < this.findMin().getRank()) {  
+        		traveler.setParent(null);
+        		if(traveler.getMark() == true) {
+        			this.marks--;
+        		}
     			traveler.setMark(false);
-    			traveler = traveler.getNext();
-    		}
+        		traveler = traveler.getNext();
+        		i++;
+        	}
+    		
+    		
+//    		while(traveler.getNext().getKey() != child.getKey()) {
+//    			traveler.setParent(null);
+//    			traveler.setMark(false);
+//    			traveler = traveler.getNext();
+//    		}
+    		
+    		
     		HeapNode brother = child.getNext();
     		HeapNode nextMin = this.min.getNext();
     		HeapNode prevMin = this.min.getPrev();
@@ -113,8 +129,10 @@ public class FibonacciHeap
     	if(toDelete.getKey() == first.getKey()) {
     		this.first = this.first.getNext();
     	}
+    	
     	toDelete.getNext().setPrev(toDelete.getPrev());
-    	toDelete.getPrev().setNext(toDelete.getNext());
+        toDelete.getPrev().setNext(toDelete.getNext());
+    	
     	toDelete.setChild(null);
     	toDelete.setParent(null);
     	toDelete.setNext(null);
@@ -214,6 +232,7 @@ public class FibonacciHeap
     				x.setNext(B[i]);
     				B[i].setPrev(x);
     				B[i].setNext(this.first);
+    				this.first.setPrev(B[i]);
     				x = B[i];
     				x.setRank(i);
     			}
@@ -428,9 +447,9 @@ public class FibonacciHeap
     *  
     * ###CRITICAL### : you are NOT allowed to change H. 
     */
-    public static int[] kMin(FibonacciHeap H, int k)
+    public static int[] kMin(FibonacciHeap H, int k) //Complexity O(k*Deg(H))
     {    
-        if(k == 0 || H.isEmpty()) {
+        if(k <= 0 || H.isEmpty()) {
         	int[] arr = new int[0];
         	return arr;
     	}
