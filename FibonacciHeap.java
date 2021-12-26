@@ -313,21 +313,22 @@ public class FibonacciHeap
     */
     public int[] countersRep() //Complexity O(n)
     {
-        int maxRank = -1;
-        HeapNode traveler = this.first;
-        while(traveler.getNext().getKey() == this.first.getKey()) {
-            if(maxRank < traveler.getRank()) {
-                maxRank = traveler.getRank();
-            }
-        }
-        int[] rankArr = new int[maxRank+1];
-        HeapNode traveler2 = this.first;
-        while(traveler2.getNext().getKey() == this.first.getKey()) {
-            rankArr[traveler2.getRank()]++;
-        }
-        return rankArr; //   to be replaced by student code
+    	int maxRank = -1;
+    	HeapNode traveler = this.first;
+    	for(int i = 0 ; i < this.trees ; i++) {
+    		if(maxRank < traveler.getRank()) {
+    			maxRank = traveler.getRank();
+    		}
+    		traveler=traveler.getNext();
+    	}
+    	int[] rankArr = new int[maxRank+1];
+    	HeapNode traveler2 = this.first;
+    	for(int i = 0 ; i < this.trees ; i++) {
+    		rankArr[traveler2.getRank()]++;
+    		traveler2=traveler2.getNext();
+    	}
+        return rankArr;
     }
-    
     
    /**
     * public void delete(HeapNode x)
@@ -474,14 +475,12 @@ public class FibonacciHeap
         HeapNode hTraveler = H.findMin().getChild(); //pointer in the original heap to help keep track
         int j = 0;
         while(j < H.getFirst().getRank()) {  
-            //traveler.setPosition(traveler.getNext());
             minChildHeap.insert(traveler.getKey());
             minChildHeap.getFirst().setPosition(traveler.getNext());
             traveler = traveler.getNext();
             j++;
         }
         for(int i = 1; i < k; i++) {
-            //HeapNode nextMin = minChildHeap.findMin();
             int nextMinKey = minChildHeap.findMin().getKey();
             while(hTraveler.getKey() != nextMinKey) {
                 hTraveler = hTraveler.getNext();
@@ -492,10 +491,8 @@ public class FibonacciHeap
             if(hTraveler.getChild() != null) {
                 FibonacciHeap tempMinHeap = new FibonacciHeap();
                 hTraveler = hTraveler.getChild();
-                //int anotherStopKey = hTraveler.getKey();
                 int l = 0;
                 while(l < hTraveler.getParent().getRank()) { //hTraveler.getNext().getKey() != anotherStopKey) {
-                    //hTraveler.setPosition(hTraveler.getNext());
                     tempMinHeap.insert(hTraveler.getKey());
                     tempMinHeap.getFirst().setPosition(hTraveler.getNext());
                     hTraveler = hTraveler.getNext();
@@ -519,7 +516,6 @@ public class FibonacciHeap
     */
     public static class HeapNode{
 
-        //public String info;
         public int key;
         public int rank;
         public boolean mark;
