@@ -109,12 +109,6 @@ public class FibonacciHeap
             }
             
             
-//          while(traveler.getNext().getKey() != child.getKey()) {
-//              traveler.setParent(null);
-//              traveler.setMark(false);
-//              traveler = traveler.getNext();
-//          }
-            
             if(this.min.getKey()==this.min.getNext().getKey()) { //min has no brothers
                 this.first=child;
             }
@@ -171,8 +165,8 @@ public class FibonacciHeap
         while(x != null) {
             HeapNode y = x;
             x = x.getNext();
-            y.setNext(y); //controversial not sure if to disconnect the current node before putting it in B
-            y.setPrev(y); //controversial not sure if to disconnect the current node before putting it in B
+            y.setNext(y);
+            y.setPrev(y);
             while (B[y.getRank()] != null) {
                 y = link(y, B[y.getRank()]);
                 B[y.getRank()-1] = null;
